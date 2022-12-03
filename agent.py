@@ -123,7 +123,6 @@ class Agent:
                     pass
         self.move(target)
 
-    # TODO: update action values based on rewards
     def update_probabilities(self, N, global_reward, bomb_states, bomb_skill_level):
         reward = self.reward(N, global_reward, bomb_states, bomb_skill_level)
         self.action_values[0].append(reward)
