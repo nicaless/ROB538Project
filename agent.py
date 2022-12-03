@@ -5,7 +5,7 @@ ROWS = 10
 COLS = 10
 
 class Agent:
-    def __init__(self, init_pos, defusal_skill, mobility, sensing, eps):
+    def __init__(self, init_pos, defusal_skill, mobility, sensing, eps, bounds=(ROWS, COLS)):
         """
 
         :param init_pos: agent's initial ability
@@ -19,8 +19,12 @@ class Agent:
         self.mobility = mobility
         self.sensing = sensing
         self.eps = eps
+        self.ROWS = bounds[0]
+        self.COLS = bounds[1]
+
         # action values:  0) move to/stay at bomb OR 1) move away
         self.action_values = [[], []]
+        self.failed = False  # flag for if agent is still available
 
     def move(self, target=None):
         # print('Moving')
@@ -60,13 +64,13 @@ class Agent:
             new_y = max(curr_y-inc, 0)
             new_pos = np.array([curr_x, new_y])
         elif dir == 'RIGHT':
-            new_y = min(curr_y+inc, COLS-1)
+            new_y = min(curr_y+inc, self.COLS-1)
             new_pos = np.array([curr_x, new_y])
         elif dir == 'UP':
             new_x = max(curr_x-inc, 0)
             new_pos = np.array([new_x, curr_y])
         elif dir == 'DOWN':
-            new_x = min(curr_x+inc, ROWS-1)
+            new_x = min(curr_x+inc, self.ROWS-1)
             new_pos = np.array([new_x, curr_y])
         else:
             new_pos = curr_pos
@@ -84,9 +88,9 @@ class Agent:
         curr_pos = self.position
 
         x_range_low = max(curr_pos[0]-self.sensing, 0)
-        x_range_high = min(curr_pos[0]+self.sensing, ROWS-1)
+        x_range_high = min(curr_pos[0]+self.sensing, self.ROWS-1)
         y_range_low = max(curr_pos[1] - self.sensing, 0)
-        y_range_high = min(curr_pos[1] + self.sensing, COLS-1)
+        y_range_high = min(curr_pos[1] + self.sensing, self.COLS-1)
 
         bombs = []
         for x in range(x_range_low, x_range_high+1):
