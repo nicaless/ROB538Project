@@ -27,7 +27,8 @@ class GridWorld:
 
     def step(self):
         # Move Agents
-        for agent in self.agents:
+        for i, agent in enumerate(self.agents):
+            print('Moving Agent {}'.format(i))
             agent.step(self.grid_state)
 
         self.update_state()
@@ -37,6 +38,8 @@ class GridWorld:
         bomb_states = {}
         bomb_skill_level = {}
         for bomb in self.bombs:
+            if bomb.defused:
+                continue
             agents_at_bomb = []
             for agent in self.agents:
                 if np.array_equal(agent.position, bomb.position):
@@ -49,9 +52,9 @@ class GridWorld:
             bomb_states[(bomb.position[0], bomb.position[1])] = agents_at_bomb
             bomb_skill_level[(bomb.position[0], bomb.position[1])] = bomb.skill_level
 
-        agents_available_to_defuse = set(agents_available_to_defuse)
+        # agents_available_to_defuse = set(agents_available_to_defuse)
         for i, agent in enumerate(self.agents):
-            # print('Agent {}'.format(i))
+            print('Updating Values Agent {}'.format(i))
             agent.update_probabilities(len(self.agents), self.global_reward,
                                        bomb_states, bomb_skill_level)
 
@@ -76,8 +79,8 @@ class GridWorld:
 
 a1 = Agent(np.array([1, 1]), 3, 1, 5, 0.9)
 a2 = Agent(np.array([0, 0]), 3, 1, 5, 0.9)
-b1 = Bomb(np.array([2, 2]), 5)
-b2 = Bomb(np.array([3, 3]), 5)
+b1 = Bomb(np.array([3, 3]), 5)
+b2 = Bomb(np.array([5, 5]), 5)
 
 grid = GridWorld([a1, a2], [b1, b2])
 
@@ -87,7 +90,7 @@ grid.step()
 # print(grid.global_reward)
 grid.print_state()
 
-
+print('Iter')
 for i in range(5):
     grid.step()
     grid.print_state()

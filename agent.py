@@ -50,7 +50,7 @@ class Agent:
         """
         dir = np.random.choice(['LEFT', 'RIGHT', 'UP', 'DOWN', 'STAY'])
         inc = np.random.choice(list(range(1,self.mobility+1)))
-        print(dir, inc)
+        print("Move Random", dir, inc)
 
         curr_pos = self.position
         curr_x = curr_pos[0]
@@ -127,7 +127,7 @@ class Agent:
     def update_probabilities(self, N, global_reward, bomb_states, bomb_skill_level):
         reward = self.reward(N, global_reward, bomb_states, bomb_skill_level)
         self.action_values[0].append(reward)
-        print('Agent Reward')
+        print('Agent Received Reward')
         print(reward)
 
     def reward(self, N, global_reward, bomb_states, bomb_skill_level):
@@ -163,7 +163,7 @@ class Agent:
 
         # if bomb was defused and could not have been defused without me, receive a difference reward
         if (not defused_without_me) and defused_with_me:
-            D = max(global_reward - 1, 1)
+            D = 1
         # if bomb was not defused with or without me, or was defused without my help, receive no difference reward
         else:
             D = 0
@@ -172,12 +172,17 @@ class Agent:
         dplusplus = self.dplusplus_reward(N, global_reward, bomb_states, bomb_skill_level)
         # if adding more of me does not produce any benefit, just use D
         if dplusplus <= D:
+            print('Using Difference Reward {}'.format(D))
             return D
 
+        print('D++ Loop', len(agent_skills)+1, N)
+        dplusplus_prev_n = D
         for i in range(len(agent_skills)+1, N):
             dplusplus_n = self.dplusplus_reward(i, global_reward, bomb_states, bomb_skill_level, sample_agents=True)
-            if dplusplus_n > dplusplus:
+            if dplusplus_n > dplusplus_prev_n:
+                print('Using D++ Reward {}'.format(D))
                 return dplusplus_n
+        print('Using Difference Reward {}'.format(D))
         return D
 
     def dplusplus_reward(self, N, global_reward, bomb_states, bomb_skill_level, sample_agents=False):
