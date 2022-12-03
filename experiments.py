@@ -34,6 +34,9 @@ COLS = 10
 
 MAX_TIME_STEPS = 50
 
+FAILURE_RATE = int((MAX_TIME_STEPS / N) * 2)
+print(FAILURE_RATE)
+
 # Initial Configurations to Test
 C = {'defuser': 2, 'search': 5, 'detection': 3}
 
@@ -58,19 +61,26 @@ bombs = [b1, b2, b3]
 
 grid = GridWorld(agents, bombs)
 
+count_failures = 0
 for i in range(MAX_TIME_STEPS):
     grid.step()
     if grid.global_reward >= B_num:
         break
     grid.plot_state(i)
+    if ((i+1) % FAILURE_RATE) == 0:
+        print('Agent Failure')
+        count_failures += 1
+        a = np.random.choice(N)
+        grid.agents[a].failed = True
 
 print(i)
 grid.print_state()
 grid.plot_state(i)
 total_steps = i
+print('Total Failures {}'.format(count_failures))
 
-with imageio.get_writer('mygif.gif', mode='I') as writer:
-    for i in range(0, total_steps):
-        filename = 'plots/{}.png'.format(i)
-        image = imageio.imread(filename)
-        writer.append_data(image)
+# with imageio.get_writer('mygif.gif', mode='I') as writer:
+#     for i in range(0, total_steps):
+#         filename = 'plots/{}.png'.format(i)
+#         image = imageio.imread(filename)
+#         writer.append_data(image)

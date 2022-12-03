@@ -36,10 +36,11 @@ class GridWorld:
         ax.set_xlim(-2, self.ROWS+2)
         ax.set_ylim(-2, self.COLS+2)
         for agent in self.agents:
-            pos = agent.position
-            circle1 = patches.Circle((pos[0], pos[1]), radius=agent.sensing/10, color='green', alpha=0.1)
-            ax.scatter(pos[0], pos[1], color='blue', alpha=0.1)
-            ax.add_patch(circle1)
+            if not agent.failed:
+                pos = agent.position
+                circle1 = patches.Circle((pos[0], pos[1]), radius=agent.sensing/10, color='green', alpha=0.1)
+                ax.scatter(pos[0], pos[1], color='blue', alpha=0.1)
+                ax.add_patch(circle1)
 
         # Plot Bombs
             for bomb in self.bombs:
@@ -69,6 +70,8 @@ class GridWorld:
                 continue
             agents_at_bomb = []
             for agent in self.agents:
+                if agent.failed:
+                    continue
                 if np.array_equal(agent.position, bomb.position):
                     agents_at_bomb.append(agent)
                     agents_available_to_defuse.append(agent)
@@ -92,8 +95,9 @@ class GridWorld:
         grid = np.zeros((self.ROWS, self.COLS))
 
         for agent in self.agents:
-            pos = agent.position
-            grid[pos[0], pos[1]] = 1
+            if not agent.failed:
+                pos = agent.position
+                grid[pos[0], pos[1]] = 1
 
         for bomb in self.bombs:
             if not bomb.defused:
