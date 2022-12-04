@@ -32,9 +32,9 @@ agent_defusal_types = {'defuser':  5, 'search': 3, 'detection': 4}
 
 
 N = 10   # maximum team number
-B_skill = 20
-bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0])]
-# bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array([5, 5]), np.array([9, 5])]
+B_skill = 10
+# bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0])]
+bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array([5, 5]), np.array([9, 5])]
 # bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array([5, 5]), np.array([9, 5]),
 #                   np.array([0, 5]), np.array([5, 9]), np.array([7, 7]), np.array([0, 7]), np.array([7, 0])]
 B_num = len(bomb_positions)
@@ -45,40 +45,36 @@ COLS = 10
 MAX_TIME_STEPS = 50
 
 # FAILURE_RATE = int((MAX_TIME_STEPS / N) * 2)
-FAILURE_RATE = 2
+FAILURE_RATE = 4
+# FAILURE_RATE = 2
 # print(FAILURE_RATE)
 
 # Initial Configurations to Test
-# N = 10
-# C1 = {'defuser': 2, 'search': 5, 'detection': 3}
-# C2 = {'defuser': 2, 'search': 3, 'detection': 5}
-# C3 = {'defuser': 3, 'search': 2, 'detection': 5}
-# C4 = {'defuser': 3, 'search': 5, 'detection': 2}
-#
-# C5 = {'defuser': 5, 'search': 2, 'detection': 3}
-# C6 = {'defuser': 5, 'search': 3, 'detection': 2}
-# C7 = {'defuser': 4, 'search': 3, 'detection': 3}
-# C8 = {'defuser': 3, 'search': 4, 'detection': 3}
-# C9 = {'defuser': 3, 'search': 3, 'detection': 4}
-# C10 = {'defuser': 6, 'search': 2, 'detection': 2}
+N = 10
+C1 = {'defuser': 8, 'search': 1, 'detection': 1}
+C2 = {'defuser': 7, 'search': 1, 'detection': 2}
+C3 = {'defuser': 7, 'search': 2, 'detection': 1}
+# C1 = {'defuser': 4, 'search': 3, 'detection': 3}
+# C2 = {'defuser': 3, 'search': 3, 'detection': 4}
+# C3 = {'defuser': 3, 'search': 4, 'detection': 3}
+
 
 # N = 30
-# C1 = {'defuser': 10, 'search': 10, 'detection': 10}
-# C2 = {'defuser': 15, 'search': 10, 'detection': 5}
-# C3 = {'defuser': 15, 'search': 5, 'detection': 10}
-# C4 = {'defuser': 10, 'search': 5, 'detection': 15}
-#
-# C5 = {'defuser': 10, 'search': 15, 'detection': 5}
-# C6 = {'defuser': 5, 'search': 10, 'detection': 15}
-# C7 = {'defuser': 5, 'search': 15, 'detection': 10}
-# C8 = {'defuser': 12, 'search': 8, 'detection': 10}
-# C9 = {'defuser': 12, 'search': 10, 'detection': 8}
-# C10 = {'defuser': 10, 'search': 8, 'detection': 12}
+# C1 = {'defuser': 28, 'search': 1, 'detection': 1}
+# C2 = {'defuser': 27, 'search': 1, 'detection': 2}
+# C3 = {'defuser': 26, 'search': 2, 'detection': 2}
+# C1 = {'defuser': 8, 'search': 10, 'detection': 12}
+# C2 = {'defuser': 12, 'search': 8, 'detection': 10}
+# C3 = {'defuser': 10, 'search': 12, 'detection': 8}
 
-N = 40
-C1 = {'defuser': 30, 'search': 5, 'detection': 5}
-C2 = {'defuser': 15, 'search': 15, 'detection': 10}
-C3 = {'defuser': 15, 'search': 10, 'detection': 15}
+
+# N = 40
+# C1 = {'defuser': 38, 'search': 1, 'detection': 1}
+# C2 = {'defuser': 36, 'search': 2, 'detection': 2}
+# C3 = {'defuser': 35, 'search': 2, 'detection': 3}
+# C1 = {'defuser': 12, 'search': 15, 'detection': 13}
+# C2 = {'defuser': 15, 'search': 13, 'detection': 12}
+# C3 = {'defuser': 13, 'search': 12, 'detection': 15}
 
 # init_configs = 10
 # configurations = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10]
@@ -167,11 +163,12 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
         # Create new configurations based on overall trial feedback
         new_c = add_new_config(agent_feedback, dict(C))
         if (new_c is not None) and OPT:
-            print('Adding New Configuration')
-            configurations.append(new_c)
-            saved_configurations.append(new_c)
-            configuration_results[init_configs+1] = {'num_failures': [], 'bombs_defused': [], 'timesteps': []}
-            init_configs += 1
+            if new_c not in saved_configurations:
+                print('Adding New Configuration')
+                configurations.append(new_c)
+                saved_configurations.append(new_c)
+                configuration_results[init_configs+1] = {'num_failures': [], 'bombs_defused': [], 'timesteps': []}
+                init_configs += 1
 
 
 ##############################################################################
