@@ -1,10 +1,51 @@
 from matplotlib import pyplot as plt, patches
 import numpy as np
+import operator
 
 from agent import Agent
 
 ROWS = 10
 COLS = 10
+
+
+def add_new_config(agent_feedback, current_config, max_to_add=5):
+    # find agent type that has the most votes (highest value in agent's add_type dictionary)
+    # get average number of additions for that agent type
+    # uniformly subtract that number from the other agent types
+    votes = {atype: 0 for atype in current_config.keys()}
+    additions = {atype: [] for atype in current_config.keys()}
+    for feedback in agent_feedback:
+        highest_vote = max(feedback.items(), key=operator.itemgetter(1))[0]
+        if feedback[highest_vote] == 0:
+            continue
+        votes[highest_vote] += 1
+        additions[highest_vote].append(feedback[highest_vote])
+
+    winner = max(votes.items(), key=operator.itemgetter(1))[0]
+    if len(additions[winner]) == 0:
+        return None
+    total_to_add = int(min(5 - current_config[winner],
+                           np.mean(additions[winner])))
+
+    # print(winner)
+    # print(total_to_add)
+    #
+    # print('current_config')
+    # print(current_config)
+    new_config = dict(current_config)
+    new_config[winner] += total_to_add
+    while total_to_add > 0:
+        atype = np.random.choice(list(current_config.keys()))
+        if atype == winner:
+            continue
+        if new_config[atype] == 0:
+            continue
+        new_config[atype] -= 1
+        total_to_add -= 1
+        # print(new_config)
+
+    return new_config
+
 
 
 class Bomb:
@@ -56,7 +97,7 @@ class GridWorld:
     def step(self):
         # Move Agents
         for i, agent in enumerate(self.agents):
-            print('Moving Agent {}'.format(i))
+            # print('Moving Agent {}'.format(i))
             agent.step(self.grid_state)
 
         self.update_state()
@@ -84,7 +125,7 @@ class GridWorld:
 
         # agents_available_to_defuse = set(agents_available_to_defuse)
         for i, agent in enumerate(self.agents):
-            print('Updating Values Agent {}'.format(i))
+            # print('Updating Values Agent {}'.format(i))
             agent.update_probabilities(len(self.agents), self.global_reward,
                                        bomb_states, bomb_skill_level)
 

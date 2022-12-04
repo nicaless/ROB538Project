@@ -5,7 +5,7 @@ ROWS = 10
 COLS = 10
 
 class Agent:
-    def __init__(self, init_pos, defusal_skill, mobility, sensing, eps, bounds=(ROWS, COLS)):
+    def __init__(self, init_pos, type_name, defusal_types, defusal_skill, mobility, sensing, eps, bounds=(ROWS, COLS)):
         """
 
         :param init_pos: agent's initial ability
@@ -15,6 +15,7 @@ class Agent:
         :param eps: parameter for epsilon greedy
         """
         self.position = init_pos
+        self.type_name = type_name
         self.defusal_skill = defusal_skill
         self.mobility = mobility
         self.sensing = sensing
@@ -25,6 +26,13 @@ class Agent:
         # action values:  0) move to/stay at bomb OR 1) move away
         self.action_values = [[], []]
         self.failed = False  # flag for if agent is still available
+        self.defusal_types = defusal_types  # dictionary to keep track of the defusal skills of each type
+        self.team_config = {}  # shared information about the team's current configuration
+        self.add_types = {k: 0 for k in self.defusal_types.keys()}
+
+    def get_team_config(self, team_config):
+        # update knowledge about the team configuration
+        self.team_config = team_config
 
     def move(self, target=None):
         # print('Moving')
@@ -54,7 +62,7 @@ class Agent:
         """
         dir = np.random.choice(['LEFT', 'RIGHT', 'UP', 'DOWN', 'STAY'])
         inc = np.random.choice(list(range(1,self.mobility+1)))
-        print("Move Random", dir, inc)
+        # print("Move Random", dir, inc)
 
         curr_pos = self.position
         curr_x = curr_pos[0]
@@ -121,7 +129,7 @@ class Agent:
                     j = np.argmax([np.mean(rewards) for rewards in self.action_values])
 
                 if j == 1:  # move away from bomb
-                    # TODO: should we give some really reward for moving away (for self-preservation?)
+                    # TODO: should we give some really small reward for moving away (rewarding self-preservation?)
                     self.action_values[0].append(0.001)
                     self.move_random()
                     pass
@@ -130,8 +138,8 @@ class Agent:
     def update_probabilities(self, N, global_reward, bomb_states, bomb_skill_level):
         reward = self.reward(N, global_reward, bomb_states, bomb_skill_level)
         self.action_values[0].append(reward)
-        print('Agent Received Reward')
-        print(reward)
+        # print('Agent Received Reward')
+        # print(reward)
 
     def reward(self, N, global_reward, bomb_states, bomb_skill_level):
         # calculate D
@@ -175,22 +183,23 @@ class Agent:
         dplusplus = self.dplusplus_reward(N, global_reward, bomb_states, bomb_skill_level)
         # if adding more of me does not produce any benefit, just use D
         if dplusplus <= D:
-            print('Using Difference Reward {}'.format(D))
+            # print('Using Difference Reward {}'.format(D))
             return D
 
-        print('D++ Loop', len(agent_skills)+1, N)
+        # print('D++ Loop', len(agent_skills)+1, N)
         dplusplus_prev_n = D
         for i in range(len(agent_skills)+1, N):
             dplusplus_n = self.dplusplus_reward(i, global_reward, bomb_states, bomb_skill_level, sample_agents=True)
             if dplusplus_n > dplusplus_prev_n:
-                print('Using D++ Reward {}'.format(D))
+                # print('Using D++ Reward {}'.format(D))
                 return dplusplus_n
-        print('Using Difference Reward {}'.format(D))
+        # print('Using Difference Reward {}'.format(D))
         return D
 
     def dplusplus_reward(self, N, global_reward, bomb_states, bomb_skill_level, sample_agents=False):
         defused_with_cf = False
         defused_without_cf = False
+        config = dict(self.team_config)
         for bomb_position, agents_at_bomb in bomb_states.items():
             if np.array_equal(self.position, bomb_position):
                 agent_skills = [a.defusal_skill for a in agents_at_bomb]
@@ -198,7 +207,14 @@ class Agent:
                 cf_agents_skill = []
                 for i in range(len(agents_at_bomb), N):
                     if sample_agents:
+                        cf = self.type_name
                         cf_skill = np.random.choice(agent_skills)
+                        # get the type name for the skill level used in counterfactual
+                        for cf_type, skill in self.defusal_types.items():
+                            if skill == cf_skill:
+                                cf = cf_type
+                                break
+                        config[cf] -= 1
                     else:
                         cf_skill = self.defusal_skill
                     cf_agents_skill.append(cf_skill)
@@ -219,6 +235,12 @@ class Agent:
         # if bomb could be defused with more of me and not otherwise, d++ reward is positive
         if defused_with_cf and (not defused_without_cf):
             D = global_reward + 1
+
+            # Check if we added more agents of a certain type than available
+            for atype, kn in config.items():
+                if kn < 0:
+                    self.add_types[atype] += 1
+
         # if bomb cannot be defused no matter how many more of me, receive no d++ reward
         else:
             D = 0
