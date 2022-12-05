@@ -31,7 +31,7 @@ agent_types = {'defuser': {'init_pos': INIT_POS,
 agent_defusal_types = {'defuser':  5, 'search': 3, 'detection': 4}
 
 
-N = 10   # maximum team number
+#N = 10   # maximum team number
 B_skill = 10
 # bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0])]
 bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array([5, 5]), np.array([9, 5])]
@@ -39,21 +39,21 @@ bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array
 #                   np.array([0, 5]), np.array([5, 9]), np.array([7, 7]), np.array([0, 7]), np.array([7, 0])]
 B_num = len(bomb_positions)
 
-ROWS = 100
-COLS = 100
+ROWS = 50
+COLS = 50
 
-MAX_TIME_STEPS = 50
+
 
 # FAILURE_RATE = int((MAX_TIME_STEPS / N) * 2)
-FAILURE_RATE = 4
+FAILURE_RATE = 10
 # FAILURE_RATE = 2
 # print(FAILURE_RATE)
 
 # Initial Configurations to Test
-N = 10
-C1 = {'defuser': 8, 'search': 1, 'detection': 1}
-C2 = {'defuser': 7, 'search': 1, 'detection': 2}
-C3 = {'defuser': 7, 'search': 2, 'detection': 1}
+# N = 10
+# C1 = {'defuser': 8, 'search': 1, 'detection': 1}
+# C2 = {'defuser': 7, 'search': 1, 'detection': 2}
+# C3 = {'defuser': 7, 'search': 2, 'detection': 1}
 # C1 = {'defuser': 4, 'search': 3, 'detection': 3}
 # C2 = {'defuser': 3, 'search': 3, 'detection': 4}
 # C3 = {'defuser': 3, 'search': 4, 'detection': 3}
@@ -68,27 +68,28 @@ C3 = {'defuser': 7, 'search': 2, 'detection': 1}
 # C3 = {'defuser': 10, 'search': 12, 'detection': 8}
 
 
-# N = 40
-# C1 = {'defuser': 38, 'search': 1, 'detection': 1}
-# C2 = {'defuser': 36, 'search': 2, 'detection': 2}
-# C3 = {'defuser': 35, 'search': 2, 'detection': 3}
-# C1 = {'defuser': 12, 'search': 15, 'detection': 13}
-# C2 = {'defuser': 15, 'search': 13, 'detection': 12}
-# C3 = {'defuser': 13, 'search': 12, 'detection': 15}
+N = 40
+C1 = {'defuser': 15, 'search': 10, 'detection': 15}
+C3 = {'defuser': 5, 'search': 30, 'detection': 5}
+C2 = {'defuser': 18, 'search': 10, 'detection': 12}
+
+C4 = {'defuser': 12, 'search': 15, 'detection': 13}
+C5 = {'defuser': 15, 'search': 13, 'detection': 12}
+C6 = {'defuser': 13, 'search': 12, 'detection': 15}
 
 # init_configs = 10
 # configurations = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10]
 # saved_configurations = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10]
 # configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps': []} for i in range(1, 11)}
-
-init_configs = 3
-configurations = [C1, C2, C3]
-saved_configurations = [C1, C2, C3]
-configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps': []} for i in range(1, 4)}
+MAX_TIME_STEPS = N*FAILURE_RATE
+init_configs = 6
+configurations = [C1, C2, C3, C4, C5, C6]
+saved_configurations = [C1, C2, C3, C4, C5, C6]
+configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps': []} for i in range(1, 7)}
 
 max_configurations = 10
 TRIALS = 20
-OPT = False
+OPT = True
 
 ##############################################################################
 # Experiment Setup
@@ -108,14 +109,14 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
         for type_name, kn in C.items():
             agent_template = agent_types[type_name]
             for k in range(kn):
-                a = Agent(np.random.choice(50, size=(1, 2))[0], type_name, agent_defusal_types,
+                a = Agent(np.random.choice(49, size=(1, 2))[0], type_name, agent_defusal_types,
                           agent_template['defusal_skill'], agent_template['mobility'],
                           agent_template['sensing'], agent_template['eps'])
                 a.get_team_config(dict(C))
                 agents.append(a)
 
         # Initalize Bombs Randomly
-        bomb_locs = np.random.choice(50, size=(B_num, 2))
+        bomb_locs = np.random.choice(49, size=(B_num, 2))
         bombs = []
         for loc in bomb_locs:
             bombs.append(Bomb(loc, B_skill))
@@ -135,7 +136,7 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
             if ((i+1) % FAILURE_RATE) == 0:
                 # print('Agent Failure')
                 count_failures += 1
-                a = np.random.choice(N)
+                a = np.random.choice(N-1)
                 grid.agents[a].failed = True
                 config[grid.agents[a].type_name] -= 1
                 for a in grid.agents:
@@ -145,8 +146,7 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
 
         configuration_results[configurations_tried]['num_failures'].append(count_failures)
         configuration_results[configurations_tried]['bombs_defused'].append(grid.global_reward)
-        if grid.global_reward == B_num:
-            configuration_results[configurations_tried]['timesteps'].append(total_steps)
+        configuration_results[configurations_tried]['timesteps'].append(total_steps)
 
         agent_feedback = []
         for a in agents:
@@ -180,7 +180,17 @@ RESULTS_FILE.write('###### Experiment Results \n')
 RESULTS_FILE.write('###### Total Configurations Tested {}\n'.format(configurations_tried))
 
 RESULTS_FILE.write('##### Configuration Results\n')
+means_ntime = []
+means_failures = []
+means_bdfuse = []
+list_de = []
+list_se = []
+list_det = []
+
+labels = []
+i = 0
 for c, res in configuration_results.items():
+    i += 1
     RESULTS_FILE.write('Configuration {}\n'.format(c))
     RESULTS_FILE.write('Defuser Agents {}\n'.format(saved_configurations[c-1]['defuser']))
     RESULTS_FILE.write('Search Agents {}\n'.format(saved_configurations[c-1]['search']))
@@ -189,6 +199,13 @@ for c, res in configuration_results.items():
     RESULTS_FILE.write('Avg Num Failures {}\n'.format(np.mean(res['num_failures'])))
     RESULTS_FILE.write('Avg Bombs Defused {}\n'.format(np.mean(res['bombs_defused'])))
     RESULTS_FILE.write('Avg Timesteps to Defuse All Bombs {}\n\n'.format(np.mean(res['timesteps'])))
+    means_ntime.append(np.mean(res['timesteps']))
+    means_failures.append(np.mean(res['num_failures']))
+    means_bdfuse.append(np.mean(res['bombs_defused']))
+    list_de.append(saved_configurations[c-1]['defuser'])
+    list_se.append(saved_configurations[c-1]['search'])
+    list_det.append(saved_configurations[c-1]['detection'])
+    labels.append(str(i))
 
 RESULTS_FILE.write('###### Best Configuration\n')
 RESULTS_FILE.write('Defuser Agents {}\n'.format(best_config['defuser']))
@@ -196,10 +213,30 @@ RESULTS_FILE.write('Search Agents {}\n'.format(best_config['search']))
 RESULTS_FILE.write('Detection Agents {}\n'.format(best_config['detection']))
 RESULTS_FILE.write('Success Rate: {}\n'.format(best_success_rate))
 RESULTS_FILE.close()
+import matplotlib.pyplot as plt
 
-# TODO: run best found config again to generate gif
-# with imageio.get_writer('mygif.gif', mode='I') as writer:
-#     for i in range(0, total_steps):
-#         filename = 'plots/{}.png'.format(i)
-#         image = imageio.imread(filename)
-#         writer.append_data(image)
+eans_ntime = np.array(means_ntime)
+eans_failures = np.array(means_failures)
+eans_bdfuse = np.array(means_bdfuse)
+ist_de = np.array(list_de)
+ist_se = np.array(list_se)
+ist_det = np.array(list_det)
+
+for i in range(len(means_ntime)):
+    ist_de[i] *= (means_ntime[i] / N)
+    ist_se[i] *= (means_ntime[i] / N)
+    ist_det[i] *= (means_ntime[i] / N)
+
+width = 0.35       # the width of the bars: can also be len(x) sequence
+
+fig, ax = plt.subplots()
+
+ax.bar(labels, ist_se, width, label='search')
+ax.bar(labels, ist_det, width, bottom=ist_se, label='detection')
+
+ax.bar(labels, ist_de, width, bottom=ist_se+ist_det, label='defuser')
+ax.set_ylabel('number of iterations')
+ax.set_title('Polpulation distribution')
+ax.legend()
+
+plt.show()
