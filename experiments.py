@@ -28,15 +28,15 @@ agent_defusal_types = {'defuser':  5, 'search': 3, 'detection': 4}
 
 N = 20   # maximum team number
 B_skill = 10
-B_num = 5
+B_num = 3
 
-ROWS = 10
-COLS = 10
+ROWS = 50
+COLS = 50
 
-MAX_TIME_STEPS = 60
+MAX_TIME_STEPS = 500
 de = 1
 se = 1
-det =1
+det = 1
 plde = []
 plse = []
 pldet = []
@@ -44,9 +44,9 @@ bdefused = []
 failures = []
 nosteps = []
 N = de + se + det
-FAILURE_RATE = 10
+FAILURE_RATE = 50
 print(FAILURE_RATE)
-for zz in range(10):
+for zz in range(30):
     N = de + se + det
     #FAILURE_RATE = int((MAX_TIME_STEPS / N) * 2)
     # Initial Configurations to Test
@@ -63,20 +63,18 @@ for zz in range(10):
     for type_name, kn in C.items():
         agent_template = agent_types[type_name]
         for k in range(kn):
-            a = Agent(agent_template['init_pos'], type_name, agent_defusal_types,
+            a = Agent(np.random.choice(50, size=(1, 2))[0], type_name, agent_defusal_types,
                       agent_template['defusal_skill'], agent_template['mobility'],
                       agent_template['sensing'], agent_template['eps'])
             a.get_team_config(dict(C))
             agents.append(a)
 
 
-    # Initialize Bombs at Opposite Corners
-    b1 = Bomb(np.array([0, 9]), B_skill)
-    b2 = Bomb(np.array([9, 9]), B_skill)
-    b3 = Bomb(np.array([9, 0]), B_skill)
-    b4 = Bomb(np.array([5, 5]), B_skill)
-    b5 = Bomb(np.array([0, 5]), B_skill)
-    bombs = [b1, b2, b3, b4, b5]
+    # Initalize Bombs Randomly
+    bomb_locs = np.random.choice(50, size=(B_num, 2))
+    bombs = []
+    for loc in bomb_locs:
+        bombs.append(Bomb(loc, B_skill))
 
 
     grid = GridWorld(agents, bombs)
@@ -86,20 +84,20 @@ for zz in range(10):
         grid.step()
         if grid.global_reward >= B_num:
             break
-        grid.plot_state(i)
+        # grid.plot_state(i)
         if ((i+1) % FAILURE_RATE) == 0:
-            print('Agent Failure')
+            # print('Agent Failure')
             count_failures += 1
             a = np.random.choice(N)
             grid.agents[a].failed = True
 
-    print(i, " ##### ")
+    # print(i, " ##### ")
     nosteps.append(i)
     bdefused.append(grid.global_reward)
     #grid.print_state()
-    #grid.plot_state(i)
+    # grid.plot_state(i)
     total_steps = i
-    print('Total Failures {}'.format(count_failures))
+    # print('Total Failures {}'.format(count_failures))
     failures.append(count_failures)
 
 plt.figure(figsize=(9, 9))

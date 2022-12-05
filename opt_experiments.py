@@ -39,8 +39,8 @@ bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array
 #                   np.array([0, 5]), np.array([5, 9]), np.array([7, 7]), np.array([0, 7]), np.array([7, 0])]
 B_num = len(bomb_positions)
 
-ROWS = 10
-COLS = 10
+ROWS = 100
+COLS = 100
 
 MAX_TIME_STEPS = 50
 
@@ -108,17 +108,17 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
         for type_name, kn in C.items():
             agent_template = agent_types[type_name]
             for k in range(kn):
-                a = Agent(agent_template['init_pos'], type_name, agent_defusal_types,
+                a = Agent(np.random.choice(50, size=(1, 2))[0], type_name, agent_defusal_types,
                           agent_template['defusal_skill'], agent_template['mobility'],
                           agent_template['sensing'], agent_template['eps'])
                 a.get_team_config(dict(C))
                 agents.append(a)
 
-
-        # Initialize Bombs at Opposite Corners
+        # Initalize Bombs Randomly
+        bomb_locs = np.random.choice(50, size=(B_num, 2))
         bombs = []
-        for pos in bomb_positions:
-            bombs.append(Bomb(pos, B_skill))
+        for loc in bomb_locs:
+            bombs.append(Bomb(loc, B_skill))
 
         grid = GridWorld(agents, bombs)
         config = dict(C)

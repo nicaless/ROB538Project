@@ -4,8 +4,8 @@ import operator
 
 from agent import Agent
 
-ROWS = 10
-COLS = 10
+ROWS = 50
+COLS = 50
 
 
 def add_new_config(agent_feedback, current_config, max_to_add=5):
@@ -79,7 +79,7 @@ class GridWorld:
         for agent in self.agents:
             if not agent.failed:
                 pos = agent.position
-                circle1 = patches.Circle((pos[0], pos[1]), radius=agent.sensing/10, color='green', alpha=0.1)
+                circle1 = patches.Circle((pos[0], pos[1]), radius=agent.sensing, color='green', alpha=0.1)
                 ax.scatter(pos[0], pos[1], color='blue', alpha=0.1)
                 ax.add_patch(circle1)
 

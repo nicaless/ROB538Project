@@ -1,8 +1,8 @@
 import numpy as np
 
 
-ROWS = 10
-COLS = 10
+ROWS = 50
+COLS = 50
 
 class Agent:
     def __init__(self, init_pos, type_name, defusal_types, defusal_skill, mobility, sensing, eps, bounds=(ROWS, COLS)):
