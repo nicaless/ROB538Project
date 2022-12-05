@@ -24,7 +24,7 @@ class Agent:
         self.COLS = bounds[1]
 
         # action values:  0) move to/stay at bomb OR 1) move away
-        self.action_values = [[], []]
+        self.action_values = [[0], [0]]
         self.failed = False  # flag for if agent is still available
         self.defusal_types = defusal_types  # dictionary to keep track of the defusal skills of each type
         self.team_config = {}  # shared information about the team's current configuration

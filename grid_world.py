@@ -8,7 +8,7 @@ ROWS = 50
 COLS = 50
 
 
-def add_new_config(agent_feedback, current_config, max_to_add=5):
+def add_new_config(agent_feedback, current_config, max_to_add=5, max_team=30):
     # find agent type that has the most votes (highest value in agent's add_type dictionary)
     # get average number of additions for that agent type
     # uniformly subtract that number from the other agent types
@@ -24,10 +24,11 @@ def add_new_config(agent_feedback, current_config, max_to_add=5):
     winner = max(votes.items(), key=operator.itemgetter(1))[0]
     if len(additions[winner]) == 0:
         return None
-    total_to_add = int(min(5 - current_config[winner],
-                           np.mean(additions[winner])))
+    total_to_add = int(max(0, min(min(max_team - current_config[winner], max_to_add),
+                                  np.mean(additions[winner]))))
 
     # print(winner)
+    # print('adding total')
     # print(total_to_add)
     #
     # print('current_config')
@@ -42,6 +43,7 @@ def add_new_config(agent_feedback, current_config, max_to_add=5):
             continue
         new_config[atype] -= 1
         total_to_add -= 1
+        # print(total_to_add)
         # print(new_config)
 
     return new_config

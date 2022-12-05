@@ -5,12 +5,13 @@ from agent import Agent
 from grid_world import Bomb, GridWorld, add_new_config
 
 
+
 ##############################################################################
 # Experiment Parameters
 ##############################################################################
-
+np.random.seed(42)
 INIT_POS = np.array([0, 0])
-EPS = 0.5
+EPS = 0.2
 
 
 agent_types = {'defuser': {'init_pos': INIT_POS,
@@ -31,23 +32,13 @@ agent_types = {'defuser': {'init_pos': INIT_POS,
 agent_defusal_types = {'defuser':  5, 'search': 3, 'detection': 4}
 
 
-#N = 10   # maximum team number
-B_skill = 10
-# bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0])]
-bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array([5, 5]), np.array([9, 5])]
-# bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array([5, 5]), np.array([9, 5]),
-#                   np.array([0, 5]), np.array([5, 9]), np.array([7, 7]), np.array([0, 7]), np.array([7, 0])]
-B_num = len(bomb_positions)
+B_skill = 15
+B_num = 3
 
-ROWS = 50
-COLS = 50
+ROWS = 100
+COLS = 100
 
-
-
-# FAILURE_RATE = int((MAX_TIME_STEPS / N) * 2)
-FAILURE_RATE = 10
-# FAILURE_RATE = 2
-# print(FAILURE_RATE)
+FAILURE_RATE = 60
 
 # Initial Configurations to Test
 # N = 10
@@ -59,37 +50,41 @@ FAILURE_RATE = 10
 # C3 = {'defuser': 3, 'search': 4, 'detection': 3}
 
 
-# N = 30
-# C1 = {'defuser': 28, 'search': 1, 'detection': 1}
-# C2 = {'defuser': 27, 'search': 1, 'detection': 2}
-# C3 = {'defuser': 26, 'search': 2, 'detection': 2}
+N = 30
+C1 = {'defuser': 28, 'search': 1, 'detection': 1}
+C2 = {'defuser': 27, 'search': 1, 'detection': 2}
+C3 = {'defuser': 26, 'search': 2, 'detection': 2}
 # C1 = {'defuser': 8, 'search': 10, 'detection': 12}
 # C2 = {'defuser': 12, 'search': 8, 'detection': 10}
 # C3 = {'defuser': 10, 'search': 12, 'detection': 8}
 
 
-N = 40
-C1 = {'defuser': 15, 'search': 10, 'detection': 15}
-C3 = {'defuser': 5, 'search': 30, 'detection': 5}
-C2 = {'defuser': 18, 'search': 10, 'detection': 12}
-
-C4 = {'defuser': 12, 'search': 15, 'detection': 13}
-C5 = {'defuser': 15, 'search': 13, 'detection': 12}
-C6 = {'defuser': 13, 'search': 12, 'detection': 15}
+# N = 40
+# C1 = {'defuser': 15, 'search': 10, 'detection': 15}
+# C3 = {'defuser': 5, 'search': 30, 'detection': 5}
+# C2 = {'defuser': 18, 'search': 10, 'detection': 12}
+#
+# C4 = {'defuser': 12, 'search': 15, 'detection': 13}
+# C5 = {'defuser': 15, 'search': 13, 'detection': 12}
+# C6 = {'defuser': 13, 'search': 12, 'detection': 15}
 
 # init_configs = 10
 # configurations = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10]
 # saved_configurations = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10]
 # configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps': []} for i in range(1, 11)}
+
 MAX_TIME_STEPS = N*FAILURE_RATE
-init_configs = 6
-configurations = [C1, C2, C3, C4, C5, C6]
-saved_configurations = [C1, C2, C3, C4, C5, C6]
-configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps': []} for i in range(1, 7)}
+
+init_configs = 3
+configurations = [C1, C2, C3]
+saved_configurations = [C1, C2, C3]
+configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps': []} for i in range(1, init_configs+1)}
 
 max_configurations = 10
-TRIALS = 20
+TRIALS = 10
 OPT = True
+
+RESULTS_FILE = open('results/N{}_B{}_F{}{}.txt'.format(N, B_num, FAILURE_RATE, '_OPT' if OPT else ''), 'w')
 
 ##############################################################################
 # Experiment Setup
@@ -109,19 +104,19 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
         for type_name, kn in C.items():
             agent_template = agent_types[type_name]
             for k in range(kn):
-                a = Agent(np.random.choice(49, size=(1, 2))[0], type_name, agent_defusal_types,
+                a = Agent(np.random.choice(ROWS-1, size=(1, 2))[0], type_name, agent_defusal_types,
                           agent_template['defusal_skill'], agent_template['mobility'],
-                          agent_template['sensing'], agent_template['eps'])
+                          agent_template['sensing'], agent_template['eps'], bounds=(ROWS, COLS))
                 a.get_team_config(dict(C))
                 agents.append(a)
 
         # Initalize Bombs Randomly
-        bomb_locs = np.random.choice(49, size=(B_num, 2))
+        bomb_locs = np.random.choice(ROWS-1, size=(B_num, 2))
         bombs = []
         for loc in bomb_locs:
             bombs.append(Bomb(loc, B_skill))
 
-        grid = GridWorld(agents, bombs)
+        grid = GridWorld(agents, bombs, bounds=(ROWS, COLS))
         config = dict(C)
 
 ##############################################################################
@@ -161,7 +156,7 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
         best_config = C
 
         # Create new configurations based on overall trial feedback
-        new_c = add_new_config(agent_feedback, dict(C))
+        new_c = add_new_config(agent_feedback, dict(C), max_to_add=5, max_team=N)
         if (new_c is not None) and OPT:
             if new_c not in saved_configurations:
                 print('Adding New Configuration')
@@ -174,12 +169,13 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
 ##############################################################################
 # Save Results
 ##############################################################################
-RESULTS_FILE = open('N{}_B{}_F{}{}.txt'.format(N, B_num, FAILURE_RATE, '_OPT' if OPT else ''), 'w')
+RESULTS_FILE = open('results/N{}_B{}_F{}{}.txt'.format(N, B_num, FAILURE_RATE, '_OPT' if OPT else ''), 'w')
 
 RESULTS_FILE.write('###### Experiment Results \n')
 RESULTS_FILE.write('###### Total Configurations Tested {}\n'.format(configurations_tried))
 
 RESULTS_FILE.write('##### Configuration Results\n')
+
 means_ntime = []
 means_failures = []
 means_bdfuse = []
@@ -213,6 +209,7 @@ RESULTS_FILE.write('Search Agents {}\n'.format(best_config['search']))
 RESULTS_FILE.write('Detection Agents {}\n'.format(best_config['detection']))
 RESULTS_FILE.write('Success Rate: {}\n'.format(best_success_rate))
 RESULTS_FILE.close()
+
 import matplotlib.pyplot as plt
 
 eans_ntime = np.array(means_ntime)
@@ -229,14 +226,50 @@ for i in range(len(means_ntime)):
 
 width = 0.35       # the width of the bars: can also be len(x) sequence
 
+
+
+# Unmesh's Plot - Bar Plots where height is the metric, splits are the team makeup, x-axis is different configurations
 fig, ax = plt.subplots()
+ax2 = ax.twinx()
 
 ax.bar(labels, ist_se, width, label='search')
 ax.bar(labels, ist_det, width, bottom=ist_se, label='detection')
 
 ax.bar(labels, ist_de, width, bottom=ist_se+ist_det, label='defuser')
-ax.set_ylabel('number of iterations')
-ax.set_title('Polpulation distribution')
-ax.legend()
+ax.set_ylabel('Avg Number of Timesteps to Defuse All Bombs')
 
 plt.show()
+
+# Plot with two y-axes
+fig, ax = plt.subplots()
+ax2 = ax.twinx()
+
+ax.bar(labels, list_se, width, label='search', alpha=0.5)
+ax.bar(labels, list_det, width, bottom=list_se, label='detection', alpha=0.5)
+ax.bar(labels, list_de, width, bottom=list(np.array(list_se) + np.array(list_det)), label='defuser', alpha=0.5)
+ax2.plot(labels, means_ntime)
+ax2.set_ylabel('Avg Time to Defuse All Bombs')
+ax.set_ylabel('Number of Agents')
+ax.set_xlabel('Configuration #')
+plt.title('Team Size {}'.format(N))
+
+ax.legend()
+plt.savefig('team_size_{}_avg_time.png'.format(N))
+
+plt.clf()
+
+fig, ax = plt.subplots()
+ax2 = ax.twinx()
+ax.bar(labels, list_se, width, label='search', alpha=0.5)
+ax.bar(labels, list_det, width, bottom=list_se, label='detection', alpha=0.5)
+ax.bar(labels, list_de, width, bottom=list(np.array(list_se) + np.array(list_det)), label='defuser', alpha=0.5)
+ax2.plot(labels, means_bdfuse)
+ax2.set_ylabel('Avg Number of Bombs Defused')
+ax.set_ylabel('Number of Agents')
+ax.set_xlabel('Configuration #')
+plt.title('Team Size {}'.format(N))
+
+ax.legend()
+plt.savefig('team_size_{}_avg_bombs.png'.format(N))
+
+plt.clf()
