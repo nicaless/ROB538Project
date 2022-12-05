@@ -31,7 +31,7 @@ agent_types = {'defuser': {'init_pos': INIT_POS,
 agent_defusal_types = {'defuser':  5, 'search': 3, 'detection': 4}
 
 
-N = 10   # maximum team number
+#N = 10   # maximum team number
 B_skill = 10
 # bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0])]
 bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array([5, 5]), np.array([9, 5])]
@@ -39,8 +39,8 @@ bomb_positions = [np.array([0, 9]), np.array([9, 9]), np.array([9, 0]), np.array
 #                   np.array([0, 5]), np.array([5, 9]), np.array([7, 7]), np.array([0, 7]), np.array([7, 0])]
 B_num = len(bomb_positions)
 
-ROWS = 100
-COLS = 100
+ROWS = 50
+COLS = 50
 
 MAX_TIME_STEPS = 50
 
@@ -50,10 +50,10 @@ FAILURE_RATE = 4
 # print(FAILURE_RATE)
 
 # Initial Configurations to Test
-N = 10
-C1 = {'defuser': 8, 'search': 1, 'detection': 1}
-C2 = {'defuser': 7, 'search': 1, 'detection': 2}
-C3 = {'defuser': 7, 'search': 2, 'detection': 1}
+# N = 10
+# C1 = {'defuser': 8, 'search': 1, 'detection': 1}
+# C2 = {'defuser': 7, 'search': 1, 'detection': 2}
+# C3 = {'defuser': 7, 'search': 2, 'detection': 1}
 # C1 = {'defuser': 4, 'search': 3, 'detection': 3}
 # C2 = {'defuser': 3, 'search': 3, 'detection': 4}
 # C3 = {'defuser': 3, 'search': 4, 'detection': 3}
@@ -68,10 +68,10 @@ C3 = {'defuser': 7, 'search': 2, 'detection': 1}
 # C3 = {'defuser': 10, 'search': 12, 'detection': 8}
 
 
-# N = 40
-# C1 = {'defuser': 38, 'search': 1, 'detection': 1}
-# C2 = {'defuser': 36, 'search': 2, 'detection': 2}
-# C3 = {'defuser': 35, 'search': 2, 'detection': 3}
+N = 40
+C1 = {'defuser': 38, 'search': 1, 'detection': 1}
+C2 = {'defuser': 36, 'search': 2, 'detection': 2}
+C3 = {'defuser': 35, 'search': 2, 'detection': 3}
 # C1 = {'defuser': 12, 'search': 15, 'detection': 13}
 # C2 = {'defuser': 15, 'search': 13, 'detection': 12}
 # C3 = {'defuser': 13, 'search': 12, 'detection': 15}
@@ -88,7 +88,7 @@ configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps
 
 max_configurations = 10
 TRIALS = 20
-OPT = False
+OPT = True
 
 ##############################################################################
 # Experiment Setup
@@ -108,14 +108,14 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
         for type_name, kn in C.items():
             agent_template = agent_types[type_name]
             for k in range(kn):
-                a = Agent(np.random.choice(50, size=(1, 2))[0], type_name, agent_defusal_types,
+                a = Agent(np.random.choice(49, size=(1, 2))[0], type_name, agent_defusal_types,
                           agent_template['defusal_skill'], agent_template['mobility'],
                           agent_template['sensing'], agent_template['eps'])
                 a.get_team_config(dict(C))
                 agents.append(a)
 
         # Initalize Bombs Randomly
-        bomb_locs = np.random.choice(50, size=(B_num, 2))
+        bomb_locs = np.random.choice(49, size=(B_num, 2))
         bombs = []
         for loc in bomb_locs:
             bombs.append(Bomb(loc, B_skill))
@@ -135,7 +135,7 @@ while (len(configurations) > 0) and (configurations_tried <= max_configurations)
             if ((i+1) % FAILURE_RATE) == 0:
                 # print('Agent Failure')
                 count_failures += 1
-                a = np.random.choice(N)
+                a = np.random.choice(N-1)
                 grid.agents[a].failed = True
                 config[grid.agents[a].type_name] -= 1
                 for a in grid.agents:
