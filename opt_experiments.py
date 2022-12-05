@@ -33,7 +33,7 @@ agent_defusal_types = {'defuser':  5, 'search': 3, 'detection': 4}
 
 
 B_skill = 15
-B_num = 3
+B_num = 5
 
 ROWS = 100
 COLS = 100
@@ -41,6 +41,14 @@ COLS = 100
 FAILURE_RATE = 60
 
 # Initial Configurations to Test
+# N = 9
+# C1 = {'defuser': 7, 'search': 1, 'detection': 1}
+# C2 = {'defuser': 1, 'search': 1, 'detection': 7}
+# C3 = {'defuser': 1, 'search': 7, 'detection': 1}
+# C4 = {'defuser': 3, 'search': 3, 'detection': 3}
+
+
+
 # N = 10
 # C1 = {'defuser': 8, 'search': 1, 'detection': 1}
 # C2 = {'defuser': 7, 'search': 1, 'detection': 2}
@@ -52,8 +60,9 @@ FAILURE_RATE = 60
 
 N = 30
 C1 = {'defuser': 28, 'search': 1, 'detection': 1}
-C2 = {'defuser': 27, 'search': 1, 'detection': 2}
-C3 = {'defuser': 26, 'search': 2, 'detection': 2}
+C2 = {'defuser': 1, 'search': 28, 'detection': 1}
+C3 = {'defuser': 1, 'search': 1, 'detection': 28}
+C4 = {'defuser': 10, 'search': 10, 'detection': 10}
 # C1 = {'defuser': 8, 'search': 10, 'detection': 12}
 # C2 = {'defuser': 12, 'search': 8, 'detection': 10}
 # C3 = {'defuser': 10, 'search': 12, 'detection': 8}
@@ -68,6 +77,13 @@ C3 = {'defuser': 26, 'search': 2, 'detection': 2}
 # C5 = {'defuser': 15, 'search': 13, 'detection': 12}
 # C6 = {'defuser': 13, 'search': 12, 'detection': 15}
 
+# N = 51
+# C1 = {'defuser': 47, 'search': 2, 'detection': 2}
+# C2 = {'defuser': 2, 'search': 2, 'detection': 47}
+# C3 = {'defuser': 2, 'search': 47, 'detection': 2}
+# C4 = {'defuser': 17, 'search': 17, 'detection': 17}
+
+
 # init_configs = 10
 # configurations = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10]
 # saved_configurations = [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10]
@@ -75,9 +91,9 @@ C3 = {'defuser': 26, 'search': 2, 'detection': 2}
 
 MAX_TIME_STEPS = N*FAILURE_RATE
 
-init_configs = 3
-configurations = [C1, C2, C3]
-saved_configurations = [C1, C2, C3]
+init_configs = 4
+configurations = [C1, C2, C3, C4]
+saved_configurations = [C1, C2, C3, C4]
 configuration_results = {i: {'num_failures': [], 'bombs_defused': [], 'timesteps': []} for i in range(1, init_configs+1)}
 
 max_configurations = 10
@@ -229,47 +245,50 @@ width = 0.35       # the width of the bars: can also be len(x) sequence
 
 
 # Unmesh's Plot - Bar Plots where height is the metric, splits are the team makeup, x-axis is different configurations
-fig, ax = plt.subplots()
-ax2 = ax.twinx()
+# fig, ax = plt.subplots()
+#
+# ax.bar(labels, ist_se, width, label='search')
+# ax.bar(labels, ist_det, width, bottom=ist_se, label='detection')
+#
+# ax.bar(labels, ist_de, width, bottom=ist_se+ist_det, label='defuser')
+# ax.set_ylabel('Avg Number of Timesteps to Defuse All Bombs')
+#
+# plt.savefig('team_size_{}_avg_time.png')
+# plt.clf()
+#
+# for i in range(len(means_bdfuse)):
+#     ist_de[i] *= (means_bdfuse[i] / N)
+#     ist_se[i] *= (means_bdfuse[i] / N)
+#     ist_det[i] *= (means_bdfuse[i] / N)
+#
+# fig, ax = plt.subplots()
+# ax.bar(labels, ist_se, width, label='search')
+# ax.bar(labels, ist_det, width, bottom=ist_se, label='detection')
+#
+# ax.bar(labels, ist_de, width, bottom=ist_se+ist_det, label='defuser')
+# ax.set_ylabel('Avg Number of Bombs Defused')
+#
+# plt.savefig('team_size_{}_avg_bombs.png')
 
-ax.bar(labels, ist_se, width, label='search')
-ax.bar(labels, ist_det, width, bottom=ist_se, label='detection')
 
-ax.bar(labels, ist_de, width, bottom=ist_se+ist_det, label='defuser')
-ax.set_ylabel('Avg Number of Timesteps to Defuse All Bombs')
+fig, [ax1, ax2, ax3] = plt.subplots(3, 1, sharex=True)
 
-plt.show()
+ax3.bar(labels, list_se, width, label='search', alpha=0.5)
+ax3.bar(labels, list_det, width, bottom=list_se, label='detection', alpha=0.5)
+ax3.bar(labels, list_de, width, bottom=list(np.array(list_se) + np.array(list_det)), label='defuser', alpha=0.5)
 
-# Plot with two y-axes
-fig, ax = plt.subplots()
-ax2 = ax.twinx()
+ax3.set_ylabel('# Agents')
+ax3.set_xlabel('Configuration #')
 
-ax.bar(labels, list_se, width, label='search', alpha=0.5)
-ax.bar(labels, list_det, width, bottom=list_se, label='detection', alpha=0.5)
-ax.bar(labels, list_de, width, bottom=list(np.array(list_se) + np.array(list_det)), label='defuser', alpha=0.5)
-ax2.plot(labels, means_ntime)
-ax2.set_ylabel('Avg Time to Defuse All Bombs')
-ax.set_ylabel('Number of Agents')
-ax.set_xlabel('Configuration #')
-plt.title('Team Size {}'.format(N))
+ax1.plot(labels, means_ntime)
+ax1.set_ylabel('Avg Time to Defuse All Bombs')
 
-ax.legend()
-plt.savefig('team_size_{}_avg_time.png'.format(N))
-
-plt.clf()
-
-fig, ax = plt.subplots()
-ax2 = ax.twinx()
-ax.bar(labels, list_se, width, label='search', alpha=0.5)
-ax.bar(labels, list_det, width, bottom=list_se, label='detection', alpha=0.5)
-ax.bar(labels, list_de, width, bottom=list(np.array(list_se) + np.array(list_det)), label='defuser', alpha=0.5)
 ax2.plot(labels, means_bdfuse)
-ax2.set_ylabel('Avg Number of Bombs Defused')
-ax.set_ylabel('Number of Agents')
-ax.set_xlabel('Configuration #')
-plt.title('Team Size {}'.format(N))
+ax2.set_ylabel('Avg # Defused')
 
-ax.legend()
-plt.savefig('team_size_{}_avg_bombs.png'.format(N))
+# ax1.title('Team Size {}'.format(N))
+
+ax3.legend()
+plt.savefig('poi_num_{}.png'.format(B_num))
 
 plt.clf()
